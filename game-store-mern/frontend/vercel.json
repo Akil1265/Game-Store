@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://game-store-orcin.vercel.app/api/:path*"
+      "destination": "https://game-store-tau-topaz.vercel.app/api/:path*"
     }
   ]
 }
