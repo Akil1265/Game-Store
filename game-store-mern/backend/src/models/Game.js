@@ -29,7 +29,25 @@ const GameSchema = new mongoose.Schema({
     default: 'INR',
     uppercase: true
   },
+  coverImage: {
+    type: String,
+    validate: {
+      validator: function(v) {
+        return !v || /^https?:\/\/.+/i.test(v) || v.startsWith('/uploads/');
+      },
+      message: 'Invalid image URL format'
+    }
+  },
   images: [{
+    type: String,
+    validate: {
+      validator: function(v) {
+        return /^https?:\/\/.+/i.test(v) || v.startsWith('/uploads/');
+      },
+      message: 'Invalid image URL format'
+    }
+  }],
+  screenshots: [{
     type: String,
     validate: {
       validator: function(v) {

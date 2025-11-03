@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { pickGameImage, resolveImageUrl } from '../utils/image';
 
 const CartContext = createContext();
 
@@ -104,7 +105,12 @@ export function CartProvider({ children }) {
         gameId: game._id,
         title: game.title,
         price: game.price,
-        image: game.images?.[0] || '',
+        coverImage: pickGameImage(game) || '',
+        image:
+          resolveImageUrl(game.images?.[0]) ||
+          resolveImageUrl(game.coverImage) ||
+          resolveImageUrl(game.screenshots?.[0]) ||
+          '',
         slug: game.slug,
         stock: game.stock,
         qty

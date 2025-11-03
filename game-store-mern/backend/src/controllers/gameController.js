@@ -247,6 +247,14 @@ const addGameReview = async (req, res) => {
     
     await review.save();
     await review.populate('user', 'name avatarUrl');
+
+    // Update game's aggregate rating after adding a review
+    try {
+      await game.updateRating();
+    } catch (aggErr) {
+      // Don't fail the request due to rating aggregation issues
+      console.warn('Failed to update game rating:', aggErr.message);
+    }
     
     res.status(201).json({
       message: 'Review added successfully',

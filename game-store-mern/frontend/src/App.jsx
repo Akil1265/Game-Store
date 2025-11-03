@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { lazy, Suspense, useMemo } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { AuthProvider } from './contexts/AuthContext';
@@ -15,21 +16,34 @@ import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminGames from './pages/admin/AdminGames';
-import AdminOrders from './pages/admin/AdminOrders';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 
-// Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+// Lazy-load admin pages so they're only evaluated when routes match
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminGames = lazy(() => import('./pages/admin/AdminGames'));
+const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'));
+const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'));
+
+// Initialize Stripe (cache across HMR to keep Elements `stripe` prop stable)
+function getStripePromise() {
+  if (typeof window !== 'undefined') {
+    if (!window.__STRIPE_PROMISE__) {
+      window.__STRIPE_PROMISE__ = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+    }
+    return window.__STRIPE_PROMISE__;
+  }
+  return loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+}
 
 function App() {
+  // Memoize to avoid recreating the promise during re-renders
+  const stripePromise = useMemo(() => getStripePromise(), []);
   return (
-    <Elements stripe={stripePromise}>
-      <AuthProvider>
-        <CartProvider>
-          <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Elements stripe={stripePromise}>
+        <AuthProvider>
+          <CartProvider>
             <div className="min-h-screen bg-gray-50 flex flex-col">
               <Navbar />
               <main className="flex-1">
@@ -67,27 +81,40 @@ function App() {
                   {/* Admin routes */}
                   <Route path="/admin" element={
                     <AdminRoute>
-                      <AdminDashboard />
+                      <Suspense fallback={<div className="p-6">Loading admin…</div>}>
+                        <AdminDashboard />
+                      </Suspense>
                     </AdminRoute>
                   } />
                   <Route path="/admin/games" element={
                     <AdminRoute>
-                      <AdminGames />
+                      <Suspense fallback={<div className="p-6">Loading admin…</div>}>
+                        <AdminGames />
+                      </Suspense>
                     </AdminRoute>
                   } />
                   <Route path="/admin/orders" element={
                     <AdminRoute>
-                      <AdminOrders />
+                      <Suspense fallback={<div className="p-6">Loading admin…</div>}>
+                        <AdminOrders />
+                      </Suspense>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/users" element={
+                    <AdminRoute>
+                      <Suspense fallback={<div className="p-6">Loading admin…</div>}>
+                        <AdminUsers />
+                      </Suspense>
                     </AdminRoute>
                   } />
                 </Routes>
               </main>
               <Footer />
             </div>
-          </Router>
-        </CartProvider>
-      </AuthProvider>
-    </Elements>
+          </CartProvider>
+        </AuthProvider>
+      </Elements>
+    </Router>
   );
 }
 

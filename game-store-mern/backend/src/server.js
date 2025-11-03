@@ -64,18 +64,20 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => {
-  logger.info('Connected to MongoDB');
-})
-.catch((error) => {
-  logger.error('MongoDB connection error:', error);
-  process.exit(1);
-});
+// Connect to MongoDB (skip in test environment, tests handle their own connection)
+if (process.env.NODE_ENV !== 'test') {
+  mongoose.connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    logger.info('Connected to MongoDB');
+  })
+  .catch((error) => {
+    logger.error('MongoDB connection error:', error);
+    process.exit(1);
+  });
+}
 
 // Serve local uploads statically
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -127,8 +129,11 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
-});
+// Start HTTP server unless running under Jest tests
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    logger.info(`Server running on port ${PORT}`);
+  });
+}
 
 module.exports = app;

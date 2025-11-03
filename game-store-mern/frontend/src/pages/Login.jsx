@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import api from '../services/api';
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -26,23 +27,40 @@ function Login() {
     if (error) setError('');
   };
 
-  const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    const result = await login(formData.email, formData.password);
-    
-    if (result.success) {
-      navigate(from, { replace: true });
-    } else {
-      setError(result.error);
-    }
-    
-    setIsLoading(false);
-  };
+    try {
+      const result = await login(formData.email, formData.password);
+      
+      if (result.success) {
+        // Check if the token was actually stored
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+          setError('Authentication failed: Token not stored');
+          return;
+        }
+        
+        // Verify token exists in Authorization header
+        const authHeader = api.defaults.headers.common['Authorization'];
+        if (!authHeader) {
+          setError('Authentication failed: Token not set in headers');
+          return;
+        }
 
-  return (
+        navigate(from, { replace: true });
+      } else {
+        setError(result.error || 'Login failed');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err.response?.data?.error || 'An unexpected error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };  return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>

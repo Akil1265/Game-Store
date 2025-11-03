@@ -15,9 +15,6 @@ const router = express.Router();
 // GET /api/games - Public route with filtering and search
 router.get('/', getGames);
 
-// GET /api/games/:slug - Public route
-router.get('/:slug', getGameBySlug);
-
 // POST /api/games - Admin only
 router.post('/', authenticate, authorizeAdmin, createGame);
 
@@ -32,5 +29,8 @@ router.get('/:id/reviews', getGameReviews);
 
 // POST /api/games/:id/reviews - Authenticated users only
 router.post('/:id/reviews', authenticate, addGameReview);
+
+// GET /api/games/:slug - Public route
+router.get('/:slug', getGameBySlug);
 
 module.exports = router;

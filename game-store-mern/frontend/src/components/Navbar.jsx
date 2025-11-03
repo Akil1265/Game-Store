@@ -66,15 +66,17 @@ function Navbar() {
               Browse Games
             </Link>
             
-            {/* Cart */}
-            <Link to="/cart" className="relative p-2 text-gray-700 hover:text-primary-600">
-              <ShoppingCart className="h-6 w-6" />
-              {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {itemCount}
-                </span>
-              )}
-            </Link>
+            {/* Cart - Only show for non-admin users */}
+            {(!user || user.role !== 'ADMIN') && (
+              <Link to="/cart" className="relative p-2 text-gray-700 hover:text-primary-600">
+                <ShoppingCart className="h-6 w-6" />
+                {itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {itemCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
             {/* User Menu */}
             {isAuthenticated ? (
@@ -89,31 +91,60 @@ function Navbar() {
                 
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                    <Link
-                      to="/profile"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <Settings className="h-4 w-4 mr-2" />
-                      Profile
-                    </Link>
-                    <Link
-                      to="/orders"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <ShoppingBag className="h-4 w-4 mr-2" />
-                      My Orders
-                    </Link>
-                    {user?.role === 'ADMIN' && (
-                      <Link
-                        to="/admin"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        <Settings className="h-4 w-4 mr-2" />
-                        Admin Panel
-                      </Link>
+                    {user?.role === 'ADMIN' ? (
+                      <>
+                        <Link
+                          to="/admin"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <Settings className="h-4 w-4 mr-2" />
+                          Dashboard
+                        </Link>
+                        <Link
+                          to="/admin/games"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <ShoppingBag className="h-4 w-4 mr-2" />
+                          Manage Games
+                        </Link>
+                        <Link
+                          to="/admin/orders"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <Package className="h-4 w-4 mr-2" />
+                          Manage Orders
+                        </Link>
+                        <Link
+                          to="/admin/users"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <User className="h-4 w-4 mr-2" />
+                          Manage Users
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          to="/profile"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <Settings className="h-4 w-4 mr-2" />
+                          Profile
+                        </Link>
+                        <Link
+                          to="/orders"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <ShoppingBag className="h-4 w-4 mr-2" />
+                          My Orders
+                        </Link>
+                      </>
                     )}
                     <hr className="my-2" />
                     <button
@@ -180,39 +211,67 @@ function Navbar() {
               >
                 Browse Games
               </Link>
-              <Link
-                to="/cart"
-                className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <ShoppingCart className="h-5 w-5 mr-2" />
-                Cart ({itemCount})
-              </Link>
+              {(!user || user.role !== 'ADMIN') && (
+                <Link
+                  to="/cart"
+                  className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <ShoppingCart className="h-5 w-5 mr-2" />
+                  Cart ({itemCount})
+                </Link>
+              )}
               
               {isAuthenticated ? (
                 <>
-                  <Link
-                    to="/profile"
-                    className="block px-3 py-2 text-gray-700 hover:text-primary-600"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Profile
-                  </Link>
-                  <Link
-                    to="/orders"
-                    className="block px-3 py-2 text-gray-700 hover:text-primary-600"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    My Orders
-                  </Link>
-                  {user?.role === 'ADMIN' && (
-                    <Link
-                      to="/admin"
-                      className="block px-3 py-2 text-gray-700 hover:text-primary-600"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Admin Panel
-                    </Link>
+                  {user?.role === 'ADMIN' ? (
+                    <>
+                      <Link
+                        to="/admin"
+                        className="block px-3 py-2 text-gray-700 hover:text-primary-600"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Dashboard
+                      </Link>
+                      <Link
+                        to="/admin/games"
+                        className="block px-3 py-2 text-gray-700 hover:text-primary-600"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Manage Games
+                      </Link>
+                      <Link
+                        to="/admin/orders"
+                        className="block px-3 py-2 text-gray-700 hover:text-primary-600"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Manage Orders
+                      </Link>
+                      <Link
+                        to="/admin/users"
+                        className="block px-3 py-2 text-gray-700 hover:text-primary-600"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Manage Users
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        to="/profile"
+                        className="block px-3 py-2 text-gray-700 hover:text-primary-600"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Profile
+                      </Link>
+                      <Link
+                        to="/orders"
+                        className="block px-3 py-2 text-gray-700 hover:text-primary-600"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        My Orders
+                      </Link>
+                    </>
                   )}
                   <button
                     onClick={handleLogout}

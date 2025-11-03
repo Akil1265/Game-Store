@@ -2,6 +2,7 @@ const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const streamifier = require('streamifier');
 
 // Configure Cloudinary
 if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
@@ -63,6 +64,26 @@ const uploadToCloudinary = async (filePath, options = {}) => {
   } catch (error) {
     throw new Error(`Cloudinary upload failed: ${error.message}`);
   }
+};
+
+const uploadBufferToCloudinary = (buffer, options = {}) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'game-store',
+        resource_type: 'image',
+        ...options
+      },
+      (error, result) => {
+        if (error) {
+          return reject(new Error(`Cloudinary upload failed: ${error.message}`));
+        }
+        resolve(result.secure_url);
+      }
+    );
+
+    streamifier.createReadStream(buffer).pipe(uploadStream);
+  });
 };
 
 // Upload single image
@@ -150,6 +171,7 @@ const uploadMultipleImages = async (req, res) => {
 module.exports = {
   upload,
   uploadToCloudinary,
+  uploadBufferToCloudinary,
   uploadSingleImage,
   uploadMultipleImages
 };

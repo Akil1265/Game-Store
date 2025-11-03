@@ -4,6 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 function AdminRoute({ children }) {
   const { user, isAuthenticated, isLoading } = useAuth();
 
+  // Check for token
+  const token = localStorage.getItem('accessToken');
+  
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -12,11 +15,15 @@ function AdminRoute({ children }) {
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  // Not authenticated or no token
+  if (!isAuthenticated || !token) {
+    console.log('Admin access denied: Not authenticated');
+    return <Navigate to="/login" state={{ from: window.location }} replace />;
   }
 
+  // Not an admin
   if (user?.role !== 'ADMIN') {
+    console.log('Access denied: User is not an admin');
     return <Navigate to="/" replace />;
   }
 

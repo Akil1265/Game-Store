@@ -14,29 +14,36 @@ const createOrder = async (req, res) => {
     }
     
     // Validate and populate items with current game data
+    const uniqueGameIds = [...new Set(items.map(item => item.gameId.toString()))];
+    const games = await Game.find({ _id: { $in: uniqueGameIds } })
+      .select('price title stock')
+      .lean();
+
+    const gameMap = new Map(games.map(game => [game._id.toString(), game]));
+
     const orderItems = [];
     let subtotal = 0;
-    
+
     for (const item of items) {
-      const game = await Game.findById(item.gameId);
+  const gameId = item.gameId.toString();
+      const game = gameMap.get(gameId);
       if (!game) {
         return res.status(400).json({ error: `Game not found: ${item.gameId}` });
       }
-      
+
       if (game.stock < item.qty) {
-        return res.status(400).json({ 
-          error: `Insufficient stock for ${game.title}. Available: ${game.stock}` 
+        return res.status(400).json({
+          error: `Insufficient stock for ${game.title}. Available: ${game.stock}`
         });
       }
-      
-      const orderItem = {
+
+      orderItems.push({
         game: game._id,
         title: game.title,
         price: game.price,
         qty: item.qty
-      };
-      
-      orderItems.push(orderItem);
+      });
+
       subtotal += game.price * item.qty;
     }
     
@@ -85,24 +92,30 @@ const getUserOrders = async (req, res) => {
     const { page = 1, limit = 10 } = req.query;
     const userId = req.user._id;
     
-    const skip = (Number(page) - 1) * Number(limit);
-    
-    const orders = await Order.find({ user: userId })
-      .populate('items.game', 'title images')
+    const pageNumber = Math.max(Number(page), 1);
+    const limitNumber = Math.min(Number(limit), 50);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const ordersQuery = Order.find({ user: userId })
+      .populate('items.game', 'title images coverImage')
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(Number(limit))
-      .select('-__v');
-    
-    const total = await Order.countDocuments({ user: userId });
+      .limit(limitNumber)
+      .select('-__v')
+      .lean();
+
+    const [orders, total] = await Promise.all([
+      ordersQuery,
+      Order.countDocuments({ user: userId })
+    ]);
     
     res.json({
       orders,
       pagination: {
-        current: Number(page),
-        pages: Math.ceil(total / Number(limit)),
+        current: pageNumber,
+        pages: Math.ceil(total / limitNumber),
         total,
-        limit: Number(limit)
+        limit: limitNumber
       }
     });
   } catch (error) {
@@ -120,9 +133,10 @@ const getOrder = async (req, res) => {
     const filter = isAdmin ? { _id: id } : { _id: id, user: userId };
     
     const order = await Order.findOne(filter)
-      .populate('items.game', 'title images')
+      .populate('items.game', 'title images coverImage')
       .populate('user', 'name email')
-      .select('-__v');
+      .select('-__v')
+      .lean();
     
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
@@ -137,32 +151,38 @@ const getOrder = async (req, res) => {
 // Get all orders (Admin only)
 const getAllOrders = async (req, res) => {
   try {
-    const { page = 1, limit = 20, status } = req.query;
+  const { page = 1, limit = 20, status } = req.query;
     
     const filter = {};
     if (status) {
       filter.paymentStatus = status;
     }
     
-    const skip = (Number(page) - 1) * Number(limit);
+    const pageNumber = Math.max(Number(page), 1);
+    const limitNumber = Math.min(Number(limit), 100);
+    const skip = (pageNumber - 1) * limitNumber;
     
-    const orders = await Order.find(filter)
+    const ordersQuery = Order.find(filter)
       .populate('user', 'name email')
       .populate('items.game', 'title')
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(Number(limit))
-      .select('-__v');
-    
-    const total = await Order.countDocuments(filter);
+      .limit(limitNumber)
+      .select('-__v')
+      .lean();
+
+    const [orders, total] = await Promise.all([
+      ordersQuery,
+      Order.countDocuments(filter)
+    ]);
     
     res.json({
       orders,
       pagination: {
-        current: Number(page),
-        pages: Math.ceil(total / Number(limit)),
+        current: pageNumber,
+        pages: Math.ceil(total / limitNumber),
         total,
-        limit: Number(limit)
+        limit: limitNumber
       }
     });
   } catch (error) {

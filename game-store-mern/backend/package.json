@@ -1,15 +1,15 @@
 {
-  "$schema": "http://json.schemastore.org/package",
-  "name": "game-store-backend",
   "version": "1.0.0",
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js --watch src",
     "start": "node src/server.js",
     "seed": "node seed/seed.js",
+    "migrate:images": "node seed/migrate-images-to-cloudinary.js",
     "test": "jest --detectOpenHandles --runInBand"
   },
   "dependencies": {
+    "axios": "^1.6.8",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.34.0",
     "cookie-parser": "^1.4.6",
@@ -21,14 +21,15 @@
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.3.1",
     "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "streamifier": "^0.1.1",
     "stripe": "^12.11.0",
-    "winston": "^3.9.0",
-    "multer": "^1.4.5-lts.1"
+    "winston": "^3.9.0"
   },
   "devDependencies": {
     "jest": "^29.6.1",
     "mongodb-memory-server": "^8.12.1",
-    "supertest": "^6.3.3",
-    "nodemon": "^2.0.22"
+    "nodemon": "^3.1.10",
+    "supertest": "^6.3.3"
   }
 }

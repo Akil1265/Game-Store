@@ -27,6 +27,26 @@ const UserSchema = new mongoose.Schema({
     enum: ['USER', 'ADMIN'],
     default: 'USER'
   },
+  age: {
+    type: Number,
+    min: [0, 'Age cannot be negative'],
+    max: [120, 'Please enter a valid age']
+  },
+  upiId: {
+    type: String,
+    trim: true,
+    maxlength: [50, 'UPI ID cannot exceed 50 characters'],
+    default: '',
+    validate: {
+      validator(value) {
+        if (!value) {
+          return true;
+        }
+        return /^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(value);
+      },
+      message: 'Please enter a valid UPI ID (example: name@bank)'
+    }
+  },
   avatarUrl: {
     type: String,
     default: ''
@@ -34,6 +54,10 @@ const UserSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Indexes to speed up admin queries and role lookups
+UserSchema.index({ createdAt: -1 });
+UserSchema.index({ role: 1, createdAt: -1 });
 
 // Password hashing middleware
 UserSchema.pre('save', async function(next) {

@@ -25,9 +25,27 @@ export const gameService = {
 export const orderService = {
   createOrder: (data) => api.post('/orders', data),
   getUserOrders: (params = {}) => api.get('/orders/me', { params }),
+  getMyOrders: (params = {}) => api.get('/orders/me', { params }),
   getOrder: (id) => api.get(`/orders/${id}`),
   getAllOrders: (params = {}) => api.get('/admin/orders', { params }),
   updateOrderStatus: (id, data) => api.put(`/admin/orders/${id}/status`, data)
+};
+
+// Dashboard services
+export const dashboardService = {
+  getSalesStats: () => api.get('/admin/dashboard/sales'),
+  getCategoryStats: () => api.get('/admin/dashboard/categories'),
+  getUserStats: () => api.get('/admin/users'),
+  getTopGames: () => api.get('/admin/dashboard/top-games')
+};
+
+// User management services
+export const userService = {
+  getAllUsers: (params = {}) => api.get('/admin/users', { params }),
+  getUserById: (id) => api.get(`/admin/users/${id}`),
+  updateUserRole: (id, role) => api.put(`/admin/users/${id}/role`, { role }),
+  deleteUser: (id) => api.delete(`/admin/users/${id}`),
+  getUserStats: () => api.get('/admin/users/stats')
 };
 
 // Review services
@@ -42,6 +60,16 @@ export const uploadService = {
     const formData = new FormData();
     formData.append('image', file);
     return api.post('/upload/single', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+  },
+  // Upload avatar for authenticated users
+  uploadAvatar: (file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    return api.post('/upload/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }

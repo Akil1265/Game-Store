@@ -56,9 +56,12 @@ const OrderSchema = new mongoose.Schema({
 });
 
 // Index for user orders
+// Indexes tuned for common dashboard and lookup patterns
 OrderSchema.index({ user: 1, createdAt: -1 });
 OrderSchema.index({ paymentIntentId: 1 });
-OrderSchema.index({ paymentStatus: 1 });
+OrderSchema.index({ paymentStatus: 1, createdAt: -1 });
+OrderSchema.index({ createdAt: -1 });
+OrderSchema.index({ 'items.game': 1 });
 
 // Calculate totals before saving
 OrderSchema.pre('save', function(next) {

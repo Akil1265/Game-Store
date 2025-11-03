@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { gameService } from '../services/gameStoreService';
-import { Search, Filter, Star, Grid, List } from 'lucide-react';
+import { Search, Star } from 'lucide-react';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { pickGameImage, resolveImageUrl } from '../utils/image';
 
 function Games() {
   const [games, setGames] = useState([]);
@@ -27,7 +29,7 @@ function Games() {
     sort
   });
 
-  const [viewMode, setViewMode] = useState('grid');
+  // Always show products in grid view
 
   const genreOptions = ['Action', 'Adventure', 'RPG', 'Strategy', 'Sports', 'Racing', 'Simulation', 'Puzzle', 'Fighting', 'Horror', 'Indie'];
   const platformOptions = ['PC', 'PS5', 'Xbox', 'Nintendo Switch', 'Mobile', 'VR'];
@@ -96,50 +98,71 @@ function Games() {
     setSearchParams({ sort: 'newest' });
   };
 
-  const GameCard = ({ game }) => (
-    <div className="card overflow-hidden hover:shadow-lg transition-shadow">
-      <div className="relative">
-        <img
-          src={game.images?.[0] || '/placeholder-game.jpg'}
-          alt={game.title}
-          className="w-full h-48 object-cover"
-        />
-        <div className="absolute top-2 right-2 bg-primary-600 text-white px-2 py-1 rounded text-sm font-medium">
-          ₹{game.price}
-        </div>
-      </div>
-      <div className="p-4">
-        <h3 className="font-semibold text-lg mb-2 line-clamp-1">{game.title}</h3>
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{game.description}</p>
-        
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-1">
-            <Star className="h-4 w-4 text-yellow-400 fill-current" />
-            <span className="text-sm text-gray-600">
-              {game.rating.avg > 0 ? game.rating.avg.toFixed(1) : 'No rating'}
-            </span>
+  const GameCard = ({ game }) => {
+    const imagesArray = Array.isArray(game.images) ? game.images : [];
+    const screenshotsArray = Array.isArray(game.screenshots) ? game.screenshots : [];
+
+    const primary = pickGameImage(game) || '/placeholder-game.svg';
+    const gallery = [...imagesArray, ...screenshotsArray]
+      .map((url) => resolveImageUrl(url))
+      .filter(Boolean);
+    const secondary = gallery.find((url) => url !== primary) || null;
+
+    return (
+      <div className="card overflow-hidden hover:shadow-lg transition-shadow">
+        <div className="relative">
+          <img
+            src={primary}
+            alt={game.title}
+            className="w-full h-48 object-cover"
+            onMouseEnter={(e) => { if (secondary) e.currentTarget.src = secondary; }}
+            onMouseLeave={(e) => { e.currentTarget.src = primary; }}
+            onError={(e) => {
+              if (secondary && e.currentTarget.src === secondary) {
+                e.currentTarget.src = primary;
+                return;
+              }
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = '/placeholder-game.svg';
+            }}
+          />
+          <div className="absolute top-2 right-2 bg-primary-600 text-white px-2 py-1 rounded text-sm font-medium">
+            ₹{game.price}
           </div>
-          <div className="flex flex-wrap gap-1">
-            {game.platform.slice(0, 2).map((platform) => (
-              <span
-                key={platform}
-                className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
-              >
-                {platform}
+        </div>
+        <div className="p-4">
+          <h3 className="font-semibold text-lg mb-2 line-clamp-1">{game.title}</h3>
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2">{game.description}</p>
+          
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-1">
+              <Star className="h-4 w-4 text-yellow-400 fill-current" />
+              <span className="text-sm text-gray-600">
+                {game.rating.avg > 0 ? game.rating.avg.toFixed(1) : 'No rating'}
               </span>
-            ))}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {game.platform.slice(0, 2).map((platform) => (
+                <span
+                  key={platform}
+                  className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
+                >
+                  {platform}
+                </span>
+              ))}
+            </div>
           </div>
+          
+          <Link
+            to={`/games/${game.slug}`}
+            className="btn btn-primary w-full"
+          >
+            View Details
+          </Link>
         </div>
-        
-        <Link
-          to={`/games/${game.slug}`}
-          className="btn btn-primary w-full"
-        >
-          View Details
-        </Link>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -248,40 +271,29 @@ function Games() {
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
-
-            {/* View Mode */}
-            <div className="flex rounded-lg border border-gray-300 overflow-hidden">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-2 ${viewMode === 'grid' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600'}`}
-              >
-                <Grid className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`p-2 ${viewMode === 'list' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600'}`}
-              >
-                <List className="h-4 w-4" />
-              </button>
-            </div>
           </div>
         </div>
       </div>
 
       {/* Results */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(12)].map((_, index) => (
-            <div key={index} className="card overflow-hidden animate-pulse">
-              <div className="bg-gray-300 h-48 w-full"></div>
-              <div className="p-4 space-y-3">
-                <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-300 rounded"></div>
-                <div className="h-8 bg-gray-300 rounded"></div>
+        <>
+          <div className="py-12">
+            <LoadingSpinner message="Loading games..." />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(12)].map((_, index) => (
+              <div key={index} className="card overflow-hidden animate-pulse">
+                <div className="bg-gray-300 h-48 w-full"></div>
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-300 rounded"></div>
+                  <div className="h-8 bg-gray-300 rounded"></div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       ) : games.length > 0 ? (
         <>
           <div className="flex justify-between items-center mb-6">
@@ -290,10 +302,7 @@ function Games() {
             </p>
           </div>
 
-          <div className={viewMode === 'grid' 
-            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" 
-            : "space-y-4"
-          }>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {games.map((game) => (
               <GameCard key={game._id} game={game} />
             ))}
