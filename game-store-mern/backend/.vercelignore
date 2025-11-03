@@ -5,5 +5,4 @@ npm-debug.log
 coverage
 test
 tests
-*.test.js
 uploads
