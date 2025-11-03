@@ -129,8 +129,12 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-// Start HTTP server unless running under Jest tests
-if (process.env.NODE_ENV !== 'test') {
+// Start HTTP server when running locally (not on Vercel serverless or tests)
+// Vercel runs functions in a serverless environment and will invoke the exported
+// app directly. Avoid calling `app.listen` on Vercel to prevent port binding
+// errors (FUNCTION_INVOCATION_FAILED). Only start the HTTP server when the
+// VERCEL environment variable is not present (i.e. running locally).
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
     logger.info(`Server running on port ${PORT}`);
   });
