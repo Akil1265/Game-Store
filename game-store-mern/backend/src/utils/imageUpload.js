@@ -2,6 +2,7 @@ const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const streamifier = require('streamifier');
 
 // Configure Cloudinary
@@ -14,9 +15,21 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
 }
 
 // Local storage configuration
-const uploadDir = path.join(__dirname, '../../uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+// When running on Vercel (serverless), the project folder is read-only.
+// Use the system temporary directory instead for uploads in serverless
+const isServerless = Boolean(process.env.VERCEL);
+const uploadDir = isServerless
+  ? path.join(os.tmpdir(), 'game-store-uploads')
+  : path.join(__dirname, '../../uploads');
+try {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+} catch (err) {
+  // If the environment is read-only (e.g., some serverless setups), fallback
+  // to using the OS temp dir without failing startup. We will rely on Cloudinary
+  // for real uploads in production environments.
+  console.warn('Could not create upload directory:', uploadDir, err.message);
 }
 
 // Multer configuration for local storage
