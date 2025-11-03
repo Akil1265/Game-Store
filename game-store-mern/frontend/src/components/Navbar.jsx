@@ -44,13 +44,13 @@ function Navbar() {
           {/* Search Bar - Hidden on mobile */}
           <div className="hidden md:flex flex-1 max-w-lg mx-8">
             <div className="relative w-full">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                 <Search className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 type="text"
                 placeholder="Search games..."
-                className="input pl-10 w-full"
+                className="input pl-11 w-full relative z-0"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter' && e.target.value.trim()) {
                     navigate(`/games?q=${encodeURIComponent(e.target.value.trim())}`);
@@ -186,13 +186,13 @@ function Navbar() {
             {/* Mobile search */}
             <div className="px-2 pb-4">
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                   <Search className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
                   type="text"
                   placeholder="Search games..."
-                  className="input pl-10 w-full"
+                  className="input pl-11 w-full relative z-0"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter' && e.target.value.trim()) {
                       navigate(`/games?q=${encodeURIComponent(e.target.value.trim())}`);

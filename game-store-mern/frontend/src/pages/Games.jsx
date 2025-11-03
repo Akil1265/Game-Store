@@ -179,11 +179,11 @@ function Games() {
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search games..."
-                className="input pl-10"
+                className="input pl-11 relative z-0"
                 value={filters.q}
                 onChange={(e) => handleFilterChange('q', e.target.value)}
               />
