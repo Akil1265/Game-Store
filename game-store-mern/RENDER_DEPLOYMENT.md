@@ -24,7 +24,7 @@
    Name: game-store-backend
    Region: Singapore (or closest to you)
    Branch: main
-   Root Directory: backend
+   Root Directory: game-store-mern/backend
    Environment: Node
    Build Command: npm install
    Start Command: npm start
@@ -152,7 +152,7 @@ Make sure you have:
 
 ### Build Fails
 **Check:**
-- Root Directory is set to `backend`
+- Root Directory is set to `game-store-mern/backend` (NOT just `backend`)
 - Build command is `npm install`
 - Start command is `npm start`
 
