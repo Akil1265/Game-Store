@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "nodemon src/server.js --watch src",
     "start": "node src/server.js",
+    "build": "echo 'No build step required'",
     "seed": "node seed/seed.js",
     "migrate:images": "node seed/migrate-images-to-cloudinary.js",
     "test": "jest --detectOpenHandles --runInBand"
