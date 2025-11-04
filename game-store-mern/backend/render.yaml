@@ -2,6 +2,7 @@ services:
   - type: web
     name: game-store-backend
     env: node
+    rootDir: game-store-mern/backend
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /api/health
